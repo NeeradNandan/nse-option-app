@@ -9,7 +9,9 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 	const [selectedExpiry, setSelectedExpiry] = useState(expiry);
 	
 	const fetchData = useCallback(() => {
-		setLoading(true);
+		if (fetchData.lock) return;
+		fetchData.lock = true;
+		
 		fetch(`/api/option-chain?expiry=${encodeURIComponent(selectedExpiry)}`)
 			.then(res => {
 				if (!res.ok) throw new Error(res.statusText);
@@ -35,15 +37,18 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 				setError(null);
 			})
 			.catch(() => setError('Failed to load data'))
-			.finally(() => setLoading(false));
+			.finally(() => {
+				setLoading(false);
+				fetchData.lock = false;
+			});
 	}, [selectedExpiry]);
 	
 	// 1) On mount: initial load + start 10s polling
 	useEffect(() => {
+		fetchData.lock = false;
 		fetchData();  // initial fetch for selectedExpiry
-		
 		const id = setInterval(() => {
-			fetchData(); // repeated fetch every 10s for current selectedExpiry
+			fetchData(); // repeated fetch every 1s for current selectedExpiry
 		}, 1000);
 		
 		return () => clearInterval(id); // clean up on expiry change
