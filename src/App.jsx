@@ -48,8 +48,19 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 		fetchData.lock = false;
 		fetchData();  // initial fetch for selectedExpiry
 		const id = setInterval(() => {
-			fetchData(); // repeated fetch every 1s for current selectedExpiry
-		}, 1000);
+			const now = new Date();
+			const istNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+			const hours = istNow.getHours();
+			const minutes = istNow.getMinutes();
+			
+			const afterOpen = hours > 9 || (hours === 9 && minutes >= 15);
+			const beforeClose = hours < 15 || (hours === 15 && minutes <= 29);
+			console.log(afterOpen, beforeClose);
+			
+			if (afterOpen && beforeClose) {
+				fetchData();
+			}
+		}, 1000); // refresh every second during market hours
 		
 		return () => clearInterval(id); // clean up on expiry change
 	}, [selectedExpiry]); // ← this is important!
