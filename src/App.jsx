@@ -68,9 +68,9 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 			<table style={{ width: '100%', borderCollapse: 'collapse' }}>
 				<thead>
 				<tr>
-					<th style={th}>Strike</th>
-					<th style={th}>CE Volume</th>
-					<th style={th}>PE Volume</th>
+					<th style={th}>Strike Price</th>
+					<th style={th}>Call Volume</th>
+					<th style={th}>Put Volume</th>
 					<th style={th}>Signal</th>
 				</tr>
 				</thead>
