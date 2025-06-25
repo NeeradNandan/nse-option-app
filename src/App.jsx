@@ -85,7 +85,7 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 						<td style={td}>{strikePrice}</td>
 						<td style={td}>{ceVolume.toLocaleString()}</td>
 						<td style={td}>{peVolume.toLocaleString()}</td>
-						<td style={td}>{signal}</td>
+						<td style={{...td, ...signalStyles[signal]}}>{signal}</td>
 					</tr>
 				))}
 				</tbody>
@@ -106,6 +106,12 @@ const td = {
 	padding: '0.5em',
 	textAlign: 'center',
 	verticalAlign: 'middle'
+};
+
+const signalStyles = {
+	Call: { color: 'green', fontWeight: 'bold' },
+	Put: { color: 'red', fontWeight: 'bold' },
+	Equal: {}, // No special style
 };
 
 export default OptionChainTable;
