@@ -10,7 +10,7 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 	
 	const fetchData = useCallback(() => {
 		setLoading(true);
-		fetch('/api/option-chain')
+		fetch(`/api/option-chain?expiry=${encodeURIComponent(selectedExpiry)}`)
 			.then(res => {
 				if (!res.ok) throw new Error(res.statusText);
 				return res.json();
@@ -40,15 +40,14 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 	
 	// 1) On mount: initial load + start 10s polling
 	useEffect(() => {
-		fetchData();
-		const id = setInterval(fetchData, 10_000);
-		return () => clearInterval(id);
-	}, []);
-	
-	// 2) Whenever selectedExpiry changes: immediately refetch
-	useEffect(() => {
-		fetchData();
-	}, [selectedExpiry]);
+		fetchData();  // initial fetch for selectedExpiry
+		
+		const id = setInterval(() => {
+			fetchData(); // repeated fetch every 10s for current selectedExpiry
+		}, 10_000);
+		
+		return () => clearInterval(id); // clean up on expiry change
+	}, [selectedExpiry]); // ← this is important!
 	
 	if (error)   return <div style={{ color: 'red' }}>Error: {error}</div>;
 	
