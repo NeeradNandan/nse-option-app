@@ -44,7 +44,7 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 		
 		const id = setInterval(() => {
 			fetchData(); // repeated fetch every 10s for current selectedExpiry
-		}, 10_000);
+		}, 1_000);
 		
 		return () => clearInterval(id); // clean up on expiry change
 	}, [selectedExpiry]); // ← this is important!
