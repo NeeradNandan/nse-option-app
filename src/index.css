@@ -1,1 +1,480 @@
-@import "tailwindcss";
+/* OptionChainTable.css */
+
+/* Import modern font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Container and Layout */
+.option-chain-container {
+	font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	width: 100%;  /* Change from calc(100% - 40px) to 100% */
+	margin: 0;  /* Change from 20px to 0 */
+	background: #ffffff;
+	border-radius: 0;  /* Remove border radius from container */
+	box-shadow: none;  /* Remove shadow from container */
+	overflow: visible;
+	box-sizing: border-box;
+}
+
+/* Header Section */
+.header-section {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: white;
+	padding: 24px 32px;
+	border-radius: 16px 16px 0 0;  /* Add this */
+}
+
+.main-title {
+	font-size: 28px;
+	font-weight: 700;
+	margin: 0 0 20px 0;
+	letter-spacing: -0.5px;
+}
+
+.controls-section {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 20px;
+}
+
+.expiry-selector label {
+	display: block;
+	font-size: 12px;
+	font-weight: 500;
+	margin-bottom: 6px;
+	opacity: 0.9;
+}
+
+.expiry-dropdown {
+	background: rgba(255, 255, 255, 0.2);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	color: white;
+	padding: 10px 16px;
+	border-radius: 8px;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	min-width: 150px;
+}
+
+.expiry-dropdown:hover {
+	background: rgba(255, 255, 255, 0.3);
+}
+
+.expiry-dropdown:focus {
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+}
+
+.expiry-dropdown option {
+	background: #4a5568;
+	color: white;
+}
+
+.update-info {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+}
+
+.update-label {
+	font-size: 12px;
+	opacity: 0.9;
+	margin-bottom: 4px;
+}
+
+.update-time {
+	font-size: 16px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+/* Table Wrapper */
+.table-wrapper {
+	overflow-x: auto;
+	background: #f8fafc;
+	width: 100%;
+	box-sizing: border-box;
+	padding: 0;  /* Remove padding */
+	margin: 0;
+}
+
+.table-wrapper:last-child {
+	border-radius: 0 0 16px 16px;
+}
+
+
+/* Table Styles */
+.option-chain-table {
+	width: 100%;
+	min-width: 1200px;  /* Change from 'max-content' to a specific value */
+	border-collapse: separate;
+	border-spacing: 0;
+	font-size: 14px;
+}
+
+.option-chain-wrapper {
+	margin: 20px;
+	border-radius: 16px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+	overflow: hidden;
+}
+
+/* Updated CSS - Replace the Table Headers section with this: */
+
+/* Table Headers */
+.option-chain-table thead th {
+	background: #f1f5f9;
+	font-weight: 600;
+	text-align: center;
+	padding: 12px 8px;
+	border: 1px solid #e2e8f0;
+	position: sticky;
+	top: 0;
+	z-index: 10;
+}
+
+.header-primary th {
+	background: #e0e7ff;
+	font-size: 14px;
+	letter-spacing: 0.5px;
+	text-transform: uppercase;
+}
+
+.th-call {
+	background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+	color: white !important;
+	font-weight: 700 !important;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.th-put {
+	background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+	color: white !important;
+	font-weight: 700 !important;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.th-strike, .th-signal {
+	background: #475569 !important;
+	color: white !important;
+	font-weight: 700 !important;
+}
+
+.header-secondary th {
+	background: #f8fafc;
+	font-size: 13px;
+	color: #1e293b;
+}
+
+.th-volume {
+	background: #e2e8f0 !important;
+	color: #334155 !important;
+	font-weight: 600 !important;
+}
+
+.th-interval {
+	background: #f1f5f9 !important;
+	color: #475569 !important;
+}
+
+.header-tertiary th {
+	background: #ffffff;
+	font-size: 12px;
+	font-weight: 500;
+	color: #64748b;
+}
+
+.th-interval-min {
+	min-width: 70px;
+}
+
+/* Also update the volume badges for better contrast */
+.volume-positive-call .volume-badge {
+	background: #16a34a;
+	color: white;
+	font-weight: 600;
+}
+
+.volume-positive-put .volume-badge {
+	background: #dc2626;
+	color: white;
+	font-weight: 600;
+}
+
+/* Table Body */
+.option-chain-table tbody tr {
+	transition: background-color 0.2s ease;
+}
+
+.row-even {
+	background: #ffffff;
+}
+
+.row-odd {
+	background: #fafbfc;
+}
+
+.option-chain-table tbody tr:hover {
+	background: #f0f4ff !important;
+}
+
+.option-chain-table tbody tr:hover .td-volume {
+	color: #1e293b;  /* Darker color on hover */
+	font-weight: 600;  /* Slightly bolder */
+}
+
+/* Also ensure strike price stays readable on hover */
+.option-chain-table tbody tr:hover .td-strike {
+	color: #1e293b;
+	background: #e0e7ff;
+}
+
+
+/* Table Cells */
+.option-chain-table tbody td {
+	padding: 10px 8px;
+	text-align: center;
+	border: 1px solid #e2e8f0;
+	font-variant-numeric: tabular-nums;
+}
+
+.td-strike {
+	font-weight: 600;
+	color: #334155;
+	background: #f8fafc;
+}
+
+.td-volume {
+	font-weight: 500;
+	color: #475569;
+}
+
+.td-interval {
+	position: relative;
+	color: #64748b;
+}
+
+/* Volume Badges */
+.volume-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 12px;
+	font-size: 12px;
+	font-weight: 500;
+	transition: all 0.2s ease;
+}
+
+.volume-positive-call .volume-badge {
+	background: #bbf7d0;
+	color: #14532d;
+}
+
+.volume-positive-put .volume-badge {
+	background: #fecaca;
+	color: #7f1d1d;
+}
+
+/* Signal Badges */
+.td-signal {
+	font-weight: 600;
+}
+
+.signal-badge {
+	display: inline-block;
+	padding: 4px 12px;
+	border-radius: 6px;
+	font-size: 12px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.signal-call .signal-badge {
+	background: #10b981;
+	color: white;
+}
+
+.signal-put .signal-badge {
+	background: #ef4444;
+	color: white;
+}
+
+.signal-equal .signal-badge {
+	background: #6b7280;
+	color: white;
+}
+
+/* Loading State */
+.loading-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 400px;
+	color: #64748b;
+}
+
+.loading-spinner {
+	width: 48px;
+	height: 48px;
+	border: 4px solid #e2e8f0;
+	border-top-color: #667eea;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+	margin-bottom: 16px;
+}
+
+@keyframes spin {
+	to { transform: rotate(360deg); }
+}
+
+/* Error State */
+.error-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 400px;
+	color: #ef4444;
+}
+
+.error-icon {
+	font-size: 48px;
+	margin-bottom: 16px;
+}
+
+.retry-button {
+	margin-top: 16px;
+	padding: 10px 24px;
+	background: #667eea;
+	color: white;
+	border: none;
+	border-radius: 8px;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.retry-button:hover {
+	background: #5a67d8;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+	.option-chain-container {
+		width: calc(100% - 20px);
+		margin: 10px auto;
+		border-radius: 12px;
+	}
+	
+	.header-section {
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		color: white;
+		padding: 24px 32px;
+		border-radius: 16px 16px 0 0;  /* Add this for proper corners */
+	}
+	
+	.main-title {
+		font-size: 24px;
+	}
+	
+	.controls-section {
+		flex-direction: column;
+		align-items: stretch;
+	}
+	
+	.update-info {
+		align-items: flex-start;
+		margin-top: 12px;
+	}
+	
+	.option-chain-table {
+		font-size: 12px;
+	}
+	
+	.option-chain-table thead th,
+	.option-chain-table tbody td {
+		padding: 8px 4px;
+	}
+	
+	.option-chain-table tbody td:last-child,
+	.option-chain-table thead th:last-child {
+		border-right: 1px solid #e2e8f0;
+	}
+	
+	.th-interval-min {
+		min-width: 60px;
+	}
+}
+
+/* Dark Mode Support (optional) */
+@media (prefers-color-scheme: dark) {
+	.option-chain-container {
+		background: #1e293b;
+		color: #f1f5f9;
+	}
+	
+	.table-wrapper {
+		background: #0f172a;
+	}
+	
+	.option-chain-table thead th {
+		background: #1e293b;
+		border-color: #334155;
+		color: #f1f5f9;
+	}
+	
+	.row-even {
+		background: #0f172a;
+	}
+	
+	.row-odd {
+		background: #1e293b;
+	}
+	
+	.option-chain-table tbody td {
+		border-color: #334155;
+		color: #e2e8f0;
+	}
+	
+	.td-strike {
+		background: #1e293b;
+		color: #f1f5f9;
+	}
+}
+
+/* Custom Scrollbar */
+.table-wrapper::-webkit-scrollbar {
+	height: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+	background: #f1f5f9;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+	background: #cbd5e1;
+	border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+	background: #94a3b8;
+}
+
+/* Animation for new data */
+@keyframes pulse {
+	0% { opacity: 1; }
+	50% { opacity: 0.7; }
+	100% { opacity: 1; }
+}
+
+.td-interval.volume-positive-call,
+.td-interval.volume-positive-put {
+	animation: pulse 1s ease-in-out;
+}
