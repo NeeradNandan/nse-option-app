@@ -112,12 +112,34 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 					
 					const intervalVols = intervalVolumes.get(d.strikePrice) || {};
 					
+					// Calculate signals for each interval
+					const intervalSignals = {};
+					intervals.forEach(minutes => {
+						const ceIntervalVol = intervalVols[`ce${minutes}min`] || 0;
+						const peIntervalVol = intervalVols[`pe${minutes}min`] || 0;
+						
+						let signal;
+						if (ceIntervalVol === 0 && peIntervalVol === 0) {
+							signal = '-'; // No activity
+						} else if (ceIntervalVol === peIntervalVol) {
+							signal = 'Equal';
+						} else if (peIntervalVol === 0 && ceIntervalVol > 0) {
+							signal = 'Call';
+						} else if (ceIntervalVol === 0 && peIntervalVol > 0) {
+							signal = 'Put';
+						} else {
+							signal = ceIntervalVol / peIntervalVol > 1 ? 'Call' : 'Put';
+						}
+						
+						intervalSignals[`signal${minutes}min`] = signal;
+					});
+					
 					return {
 						strikePrice: d.strikePrice,
 						ceVolume: ceVol,
 						peVolume: peVol,
-						signal,
-						...intervalVols
+						...intervalVols,
+						...intervalSignals,
 					};
 				});
 				
@@ -130,7 +152,7 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 				setLoading(false);
 				fetchData.lock = false;
 			});
-	}, [selectedExpiry, calculateIntervalVolumes, rows]);
+	}, [selectedExpiry, calculateIntervalVolumes, rows, intervals]);
 	
 	// Clear volume history when expiry changes
 	useEffect(() => {
@@ -216,9 +238,12 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 					<thead>
 					<tr className="header-primary">
 						<th rowSpan="3" className="th-strike">Strike Price</th>
-						<th rowSpan="3" className="th-signal">Signal</th>
-						<th colSpan="8" className="th-call">Call Options</th>
-						<th colSpan="8" className="th-put">Put Options</th>
+						<th colSpan="8" className="th-call">
+							<span className="header-icon">📈</span> Call Options
+						</th>
+						<th colSpan="8" className="th-put">
+							<span className="header-icon">📉</span> Put Options
+						</th>
 					</tr>
 					<tr className="header-secondary">
 						<th rowSpan="2" className="th-volume">Total Volume</th>
@@ -239,40 +264,47 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 					{rows.map((row, index) => (
 						<tr key={row.strikePrice} className={index % 2 === 0 ? 'row-even' : 'row-odd'}>
 							<td className="td-strike">{row.strikePrice}</td>
-							<td className={`td-signal signal-${row.signal.toLowerCase()}`}>
-								<span className="signal-badge">{row.signal}</span>
-							</td>
 							<td className="td-volume">{row.ceVolume.toLocaleString()}</td>
 							{intervals.map(min => {
 								const volume = row[`ce${min}min`] || 0;
+								const signal = row[`signal${min}min`] || '-';
 								return (
 									<td
 										key={`ce${min}`}
 										className={`td-interval ${volume > 0 ? 'volume-positive-call' : ''}`}
 									>
-										{volume > 0 && (
-											<span className="volume-badge">
-                          {volume.toLocaleString()}
-                        </span>
-										)}
-										{volume === 0 && '-'}
+										{volume > 0 ? (
+											<div className="interval-cell">
+                <span className="volume-badge">
+                  {volume.toLocaleString()}
+                </span>
+												<span className={`signal-indicator signal-${signal.toLowerCase()}`}>
+                  {signal === 'Call' ? ' C' : signal === 'Put' ? ' P' : signal === 'Equal' ? ' =' : ''}
+                </span>
+											</div>
+										) : '-'}
 									</td>
 								);
 							})}
 							<td className="td-volume">{row.peVolume.toLocaleString()}</td>
 							{intervals.map(min => {
 								const volume = row[`pe${min}min`] || 0;
+								const signal = row[`signal${min}min`] || '-';
 								return (
 									<td
 										key={`pe${min}`}
 										className={`td-interval ${volume > 0 ? 'volume-positive-put' : ''}`}
 									>
-										{volume > 0 && (
-											<span className="volume-badge">
-                          {volume.toLocaleString()}
-                        </span>
-										)}
-										{volume === 0 && '-'}
+										{volume > 0 ? (
+											<div className="interval-cell">
+                <span className="volume-badge">
+                  {volume.toLocaleString()}
+                </span>
+												<span className={`signal-indicator signal-${signal.toLowerCase()}`}>
+                  {signal === 'Call' ? ' C' : signal === 'Put' ? ' P' : signal === 'Equal' ? ' =' : ''}
+                </span>
+											</div>
+										) : '-'}
 									</td>
 								);
 							})}

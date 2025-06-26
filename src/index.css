@@ -294,17 +294,20 @@
 .td-interval {
 	position: relative;
 	color: #64748b;
-	min-width: 40px;  /* Fixed width */
+	min-width: 45px;  /* Slightly wider for signal */
+	height: 40px;  /* Fixed height */
+	vertical-align: middle;
 }
 
 /* Volume Badges */
 .volume-badge {
-	display: inline-block;
-	padding: 1px 4px;  /* Reduced from 2px 8px */
-	border-radius: 8px;  /* Reduced from 12px */
-	font-size: 10px;  /* Reduced from 12px */
+	display: block;
+	padding: 1px 4px;
+	border-radius: 8px;
+	font-size: 10px;
 	font-weight: 500;
 	transition: all 0.2s ease;
+	margin-bottom: 2px;
 }
 
 .volume-positive-call .volume-badge {
@@ -519,4 +522,33 @@
 .td-interval.volume-positive-call,
 .td-interval.volume-positive-put {
 	animation: pulse 1s ease-in-out;
+}
+
+.interval-cell {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+}
+
+.signal-indicator {
+	font-size: 10px;
+	font-weight: bold;
+	padding: 1px 3px;
+	border-radius: 3px;
+	line-height: 1;
+}
+.signal-call {
+	color: #16a34a;
+	background: rgba(34, 197, 94, 0.1);
+}
+
+.signal-put {
+	color: #dc2626;
+	background: rgba(239, 68, 68, 0.1);
+}
+
+.signal-equal {
+	color: #6b7280;
+	background: rgba(107, 114, 128, 0.1);
 }
