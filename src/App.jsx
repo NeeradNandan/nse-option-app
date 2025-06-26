@@ -154,7 +154,7 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 			if (afterOpen && beforeClose) {
 				fetchData();
 			}
-		}, 10000); // Fetch every 10 seconds
+		}, 3000); // Fetch every 3 seconds
 		
 		return () => clearInterval(id);
 	}, [selectedExpiry]);
