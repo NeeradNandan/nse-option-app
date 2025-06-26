@@ -216,9 +216,9 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 					<thead>
 					<tr className="header-primary">
 						<th rowSpan="3" className="th-strike">Strike Price</th>
+						<th rowSpan="3" className="th-signal">Signal</th>
 						<th colSpan="8" className="th-call">Call Options</th>
 						<th colSpan="8" className="th-put">Put Options</th>
-						<th rowSpan="3" className="th-signal">Signal</th>
 					</tr>
 					<tr className="header-secondary">
 						<th rowSpan="2" className="th-volume">Total Volume</th>
@@ -239,6 +239,9 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 					{rows.map((row, index) => (
 						<tr key={row.strikePrice} className={index % 2 === 0 ? 'row-even' : 'row-odd'}>
 							<td className="td-strike">{row.strikePrice}</td>
+							<td className={`td-signal signal-${row.signal.toLowerCase()}`}>
+								<span className="signal-badge">{row.signal}</span>
+							</td>
 							<td className="td-volume">{row.ceVolume.toLocaleString()}</td>
 							{intervals.map(min => {
 								const volume = row[`ce${min}min`] || 0;
@@ -273,9 +276,6 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 									</td>
 								);
 							})}
-							<td className={`td-signal signal-${row.signal.toLowerCase()}`}>
-								<span className="signal-badge">{row.signal}</span>
-							</td>
 						</tr>
 					))}
 					</tbody>
