@@ -309,7 +309,7 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
                 {volume.toLocaleString()}
               </span>
 								<span className={`signal-indicator signal-${signal.toLowerCase()}`}>
-                {signal === 'Call' ? '▲' : signal === 'Put' ? '▼' : signal === 'Equal' ? '=' : ''}
+                {signal === 'Call' ? 'C' : signal === 'Put' ? 'P' : signal === 'Equal' ? '=' : ''}
               </span>
 							</div>
 						) : '-'}
@@ -331,7 +331,7 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
                 {volume.toLocaleString()}
               </span>
 								<span className={`signal-indicator signal-${signal.toLowerCase()}`}>
-                {signal === 'Call' ? '▲' : signal === 'Put' ? '▼' : signal === 'Equal' ? '=' : ''}
+                {signal === 'Call' ? 'C' : signal === 'Put' ? 'P' : signal === 'Equal' ? '=' : ''}
               </span>
 							</div>
 						) : '-'}
