@@ -42,12 +42,14 @@ export default async function handler(req, res) {
 	const expiry = req.query.expiry || '26-Jun-2025';
 	
 	try {
+		// Visit the page first to get cookies
 		await client.get('https://www.nseindia.com/option-chain', {
 			headers: PAGE_HEADERS
 		});
 		
-		const apiUrl = 'https://www.nseindia.com/api/option-chain-v3';
-		const { data } = await client.get(apiUrl, {
+		// Fetch option chain data
+		const optionChainUrl = 'https://www.nseindia.com/api/option-chain-v3';
+		const { data: optionData } = await client.get(optionChainUrl, {
 			headers: API_HEADERS,
 			params: {
 				type: 'Indices',
@@ -56,13 +58,29 @@ export default async function handler(req, res) {
 			}
 		});
 		
-		if (typeof data !== 'object') {
+		// Fetch market status data
+		const marketStatusUrl = 'https://www.nseindia.com/api/marketStatus';
+		const { data: marketData } = await client.get(marketStatusUrl, {
+			headers: API_HEADERS
+		});
+		
+		// Extract NIFTY 50 last price
+		const capitalMarket = marketData.marketState.find(m => m.market === 'Capital Market');
+		const niftyLast = capitalMarket ? capitalMarket.last : null;
+		
+		// Combine the data
+		const responseData = {
+			...optionData,
+			niftySpot: niftyLast
+		};
+		
+		if (typeof optionData !== 'object') {
 			return res.status(502).json({ error: 'Unexpected response from NSE' });
 		}
 		
-		res.status(200).json(data);
+		res.status(200).json(responseData);
 	} catch (err) {
 		console.error('API Error:', err.message || err);
-		res.status(502).json({ error: 'Failed to fetch NSE option-chain data' });
+		res.status(502).json({ error: 'Failed to fetch NSE data' });
 	}
 }
