@@ -911,3 +911,134 @@
 .highlight-p-high .td-volume {
 	font-weight: 600;
 }
+
+.key-strike-indicator {
+	color: #fbbf24;
+	font-size: 10px;
+	margin-left: 4px;
+	vertical-align: super;
+}
+
+/* Key strike cells have different signal styling */
+.key-strike-cell .signal-indicator.key-signal {
+	background: rgba(251, 191, 36, 0.2);
+	border: 1px solid #fbbf24;
+	font-weight: 700;
+}
+
+.key-strike-cell .signal-indicator.key-signal.signal-call {
+	color: #16a34a;
+	background: rgba(34, 197, 94, 0.2);
+	border-color: #16a34a;
+}
+
+.key-strike-cell .signal-indicator.key-signal.signal-put {
+	color: #dc2626;
+	background: rgba(239, 68, 68, 0.2);
+	border-color: #dc2626;
+}
+
+/* Add a note in the legend about special logic */
+.header-legend::after {
+	content: "★ Key strikes use special CPR/PCR logic";
+	display: block;
+	width: 100%;
+	font-size: 11px;
+	opacity: 0.8;
+	margin-top: 8px;
+	font-style: italic;
+}
+
+/* Ratios display */
+.ratios-display {
+	display: flex;
+	gap: 20px;
+	background: rgba(255, 255, 255, 0.1);
+	padding: 10px 20px;
+	border-radius: 8px;
+	margin: 12px 0;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ratio-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.ratio-label {
+	font-size: 11px;
+	font-weight: 500;
+	opacity: 0.9;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	margin-bottom: 4px;
+}
+
+.ratio-value {
+	font-size: 16px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+/* Highlight ratios that trigger signals */
+.ratio-item.trigger-call .ratio-value {
+	color: #4ade80;
+	text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+}
+
+.ratio-item.trigger-put .ratio-value {
+	color: #f87171;
+	text-shadow: 0 0 10px rgba(248, 113, 113, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+	.ratios-display {
+		flex-wrap: wrap;
+		gap: 15px;
+		padding: 8px 16px;
+	}
+	
+	.ratio-value {
+		font-size: 14px;
+	}
+}
+
+/* Ratios section */
+.ratios-section {
+	background: rgba(255, 255, 255, 0.1);
+	padding: 12px 20px;
+	border-radius: 8px;
+	margin: 12px 0;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ratios-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 12px;
+}
+
+.ratios-title {
+	font-size: 14px;
+	font-weight: 600;
+	opacity: 0.9;
+}
+
+.interval-selector {
+	background: rgba(255, 255, 255, 0.2);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	color: white;
+	padding: 6px 12px;
+	border-radius: 6px;
+	font-size: 12px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.interval-selector option {
+	background: #4a5568;
+	color: white;
+}

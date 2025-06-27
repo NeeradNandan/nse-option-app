@@ -15,6 +15,15 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 		                                     p_low: null,
 		                                     p_high: null
 	                                     });
+	const [keyStrikeRatios, setKeyStrikeRatios] = useState({
+		                                                       CPRL: 0,
+		                                                       CPRH: 0,
+		                                                       PCRL: 0,
+		                                                       PCRH: 0
+	                                                       });
+	const [selectedRatioInterval, setSelectedRatioInterval] = useState('1');
+	
+	
 	
 	// Store historical volume data
 	const volumeHistory = useRef(new Map());
@@ -147,6 +156,73 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 		return intervalVolumes;
 	}, [intervals]);
 	
+	const calculateKeyStrikeSignals = useCallback((rows) => {
+		if (!ranges.c_low || !rows.length) return { signals: {}, ratios: {} };
+		
+		// Find the relevant rows
+		const cLowRow = rows.find(r => r.strikePrice === ranges.c_low);
+		const cHighRow = rows.find(r => r.strikePrice === ranges.c_high);
+		const pLowRow = rows.find(r => r.strikePrice === ranges.p_low);
+		const pHighRow = rows.find(r => r.strikePrice === ranges.p_high);
+		
+		const keyStrikeSignals = {};
+		const allRatios = {};
+		
+		intervals.forEach(minutes => {
+			// Get volumes for THIS SPECIFIC INTERVAL
+			const cLowCallVol = cLowRow?.[`ce${minutes}min`] || 0;
+			const cLowPutVol = cLowRow?.[`pe${minutes}min`] || 0;
+			
+			const cHighCallVol = cHighRow?.[`ce${minutes}min`] || 0;
+			const cHighPutVol = cHighRow?.[`pe${minutes}min`] || 0;
+			
+			const pLowCallVol = pLowRow?.[`ce${minutes}min`] || 0;
+			const pLowPutVol = pLowRow?.[`pe${minutes}min`] || 0;
+			
+			const pHighCallVol = pHighRow?.[`ce${minutes}min`] || 0;
+			const pHighPutVol = pHighRow?.[`pe${minutes}min`] || 0;
+			
+			// Calculate ratios for THIS INTERVAL
+			// CPRL = Call Volume (C_low) / Put Volume (P_low)
+			const CPRL = pLowPutVol > 0 ? cLowCallVol / pLowPutVol : 0;
+			
+			// CPRH = Call Volume (C_high) / Put Volume (P_high)
+			const CPRH = pHighPutVol > 0 ? cHighCallVol / pHighPutVol : 0;
+			
+			// PCRL = Put Volume (P_low) / Call Volume (C_low)
+			const PCRL = cLowCallVol > 0 ? pLowPutVol / cLowCallVol : 0;
+			
+			// PCRH = Put Volume (P_high) / Call Volume (C_high)
+			const PCRH = cHighCallVol > 0 ? pHighPutVol / cHighCallVol : 0;
+			
+			// Store ratios for this interval
+			allRatios[`${minutes}min`] = { CPRL, CPRH, PCRL, PCRH };
+			
+			// Determine signal based on special logic
+			let signal = '-';
+			
+			if ((CPRL > 1 && CPRH > 1) || (CPRH > PCRL)) {
+				signal = 'Call';
+			} else if ((PCRL > 1 && PCRH > 1) || (PCRL > CPRH)) {
+				signal = 'Put';
+			} else if (CPRL === 0 && CPRH === 0 && PCRL === 0 && PCRH === 0) {
+				signal = '-';
+			} else {
+				signal = 'Equal';
+			}
+			
+			// Store signals for each key strike
+			keyStrikeSignals[`${ranges.c_low}_${minutes}min`] = signal;
+			keyStrikeSignals[`${ranges.c_high}_${minutes}min`] = signal;
+			keyStrikeSignals[`${ranges.p_low}_${minutes}min`] = signal;
+			keyStrikeSignals[`${ranges.p_high}_${minutes}min`] = signal;
+		});
+		
+		return { signals: keyStrikeSignals, ratios: allRatios };
+	}, [ranges, intervals]);
+	
+	
+	
 	const fetchData = useCallback(() => {
 		if (fetchData.lock) return;
 		fetchData.lock = true;
@@ -180,11 +256,6 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 				const tableRows = filtered.map(d => {
 					const ceVol = d.CE?.totalTradedVolume ?? 0;
 					const peVol = d.PE?.totalTradedVolume ?? 0;
-					let signal;
-					if (ceVol === peVol) signal = 'Equal';
-					else if (peVol === 0 && ceVol > 0) signal = 'Call';
-					else if (ceVol === 0 && peVol > 0) signal = 'Put';
-					else signal = ceVol / peVol > 1 ? 'Call' : 'Put';
 					
 					const intervalVols = intervalVolumes.get(d.strikePrice) || {};
 					
@@ -196,7 +267,7 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 						
 						let signal;
 						if (ceIntervalVol === 0 && peIntervalVol === 0) {
-							signal = '-'; // No activity
+							signal = '-';
 						} else if (ceIntervalVol === peIntervalVol) {
 							signal = 'Equal';
 						} else if (peIntervalVol === 0 && ceIntervalVol > 0) {
@@ -215,11 +286,41 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 						ceVolume: ceVol,
 						peVolume: peVol,
 						...intervalVols,
-						...intervalSignals,
+						...intervalSignals
 					};
 				});
 				
-				setRows(tableRows);
+				// Calculate key strike signals
+				const keyStrikeData = calculateKeyStrikeSignals(tableRows);
+				const keyStrikeSignals = keyStrikeData.signals;
+				const ratios = keyStrikeData.ratios;
+				
+				if (ratios) {
+					setKeyStrikeRatios(ratios);
+				}
+				
+				// Apply key strike signals to relevant rows
+				const finalRows = tableRows.map(row => {
+					const isKeyStrike = [ranges.c_low, ranges.c_high, ranges.p_low, ranges.p_high, niftyATM].includes(row.strikePrice);
+					
+					if (isKeyStrike) {
+						// Override signals with key strike signals
+						const updatedSignals = {};
+						intervals.forEach(minutes => {
+							updatedSignals[`signal${minutes}min`] = keyStrikeSignals[`${row.strikePrice}_${minutes}min`] || '-';
+						});
+						
+						return {
+							...row,
+							...updatedSignals,
+							isKeyStrike: true
+						};
+					}
+					
+					return row;
+				});
+				
+				setRows(finalRows);
 				setError(null);
 				lastUpdateTime.current = Date.now();
 			})
@@ -228,7 +329,7 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 				setLoading(false);
 				fetchData.lock = false;
 			});
-	}, [selectedExpiry, calculateIntervalVolumes, rows, intervals]);
+	}, [selectedExpiry, calculateIntervalVolumes, calculateKeyStrikeSignals, rows, intervals, ranges, niftyATM]);
 	
 	// Clear volume history when expiry changes
 	useEffect(() => {
@@ -252,6 +353,7 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 			if (afterOpen && beforeClose) {
 				fetchData();
 			}
+			/*fetchData();*/
 		}, 10000); // Fetch every 10 seconds
 		
 		return () => clearInterval(id);
@@ -288,58 +390,72 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 		return null;
 	};
 	
-	const renderRowCells = (row, label) => (
-		<>
-			<td className="td-strike">
-				{row.strikePrice}
-				{label && <span className="strike-label">{label}</span>}
-			</td>
-			<td className="td-volume">{row.ceVolume.toLocaleString()}</td>
-			{intervals.map(min => {
-				const volume = row[`ce${min}min`] || 0;
-				const signal = row[`signal${min}min`] || '-';
-				return (
-					<td
-						key={`ce${min}`}
-						className={`td-interval ${volume > 0 ? 'volume-positive-call' : ''}`}
-					>
-						{volume > 0 ? (
-							<div className="interval-cell">
-              <span className="volume-badge">
-                {volume.toLocaleString()}
-              </span>
-								<span className={`signal-indicator signal-${signal.toLowerCase()}`}>
-                {signal === 'Call' ? 'C' : signal === 'Put' ? 'P' : signal === 'Equal' ? '=' : ''}
-              </span>
-							</div>
-						) : '-'}
-					</td>
-				);
-			})}
-			<td className="td-volume">{row.peVolume.toLocaleString()}</td>
-			{intervals.map(min => {
-				const volume = row[`pe${min}min`] || 0;
-				const signal = row[`signal${min}min`] || '-';
-				return (
-					<td
-						key={`pe${min}`}
-						className={`td-interval ${volume > 0 ? 'volume-positive-put' : ''}`}
-					>
-						{volume > 0 ? (
-							<div className="interval-cell">
-              <span className="volume-badge">
-                {volume.toLocaleString()}
-              </span>
-								<span className={`signal-indicator signal-${signal.toLowerCase()}`}>
-                {signal === 'Call' ? 'C' : signal === 'Put' ? 'P' : signal === 'Equal' ? '=' : ''}
-              </span>
-							</div>
-						) : '-'}
-					</td>
-				);
-			})}
-		</>
-	);
+	// Update renderRowCells to show special indicator for key strike signals
+	const renderRowCells = (row, label) => {
+		const isATM = row.strikePrice === niftyATM;
+		
+		return (
+			<>
+				<td className="td-strike">
+					{row.strikePrice}
+					{label && <span className="strike-label">{label}</span>}
+					{row.isKeyStrike && <span className="key-strike-indicator">★</span>}
+				</td>
+				<td className="td-volume">{row.ceVolume.toLocaleString()}</td>
+				{intervals.map(min => {
+					const volume = row[`ce${min}min`] || 0;
+					const signal = row[`signal${min}min`] || '-';
+					
+					return (
+						<td
+							key={`ce${min}`}
+							className={`td-interval ${volume > 0 ? 'volume-positive-call' : ''} ${row.isKeyStrike ? 'key-strike-cell' : ''}`}
+						>
+							{volume > 0 ? (
+								<div className="interval-cell">
+                <span className="volume-badge">
+                  {volume.toLocaleString()}
+                </span>
+									{!isATM && (  // Don't show signal for ATM
+										<span className={`signal-indicator signal-${signal.toLowerCase()} ${row.isKeyStrike ? 'key-signal' : ''}`}>
+                    {signal === 'Call' ? 'C' : signal === 'Put' ? 'P' : signal === 'Equal' ? '=' : ''}
+                  </span>
+									)}
+								</div>
+							) : '-'}
+						</td>
+					);
+				})}
+				<td className="td-volume">{row.peVolume.toLocaleString()}</td>
+				{intervals.map(min => {
+					const volume = row[`pe${min}min`] || 0;
+					const signal = row[`signal${min}min`] || '-';
+					
+					return (
+						<td
+							key={`pe${min}`}
+							className={`td-interval ${volume > 0 ? 'volume-positive-put' : ''} ${row.isKeyStrike ? 'key-strike-cell' : ''}`}
+						>
+							{volume > 0 ? (
+								<div className="interval-cell">
+                <span className="volume-badge">
+                  {volume.toLocaleString()}
+                </span>
+									{!isATM && (  // Don't show signal for ATM
+										<span className={`signal-indicator signal-${signal.toLowerCase()} ${row.isKeyStrike ? 'key-signal' : ''}`}>
+                    {signal === 'Call' ? 'C' : signal === 'Put' ? 'P' : signal === 'Equal' ? '=' : ''}
+                  </span>
+									)}
+								</div>
+							) : '-'}
+						</td>
+					);
+				})}
+			</>
+		);
+	};
+	
+	//console.log(keyStrikeRatios);
 	
 	return (
 		<div className="option-chain-wrapper">
@@ -378,6 +494,52 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 							)}
 						</div>
 					)}
+					
+					{/* Add ratios display */}
+					{keyStrikeRatios && (
+						<div className="ratios-section">
+							<div className="ratios-header">
+								<span className="ratios-title">Key Strike Ratios</span>
+								<select
+									className="interval-selector"
+									value={selectedRatioInterval}
+									onChange={(e) => setSelectedRatioInterval(e.target.value)}
+								>
+									{intervals.map(min => (
+										<option key={min} value={min}>{min}min</option>
+									))}
+								</select>
+							</div>
+							<div className="ratios-display">
+								<div className="ratio-item">
+									<span className="ratio-label">CPRL</span>
+									<span className="ratio-value">
+          {keyStrikeRatios[`${selectedRatioInterval}min`]?.CPRL?.toFixed(3) || '0.000'}
+        </span>
+								</div>
+								<div className="ratio-item">
+									<span className="ratio-label">CPRH</span>
+									<span className="ratio-value">
+          {keyStrikeRatios[`${selectedRatioInterval}min`]?.CPRH?.toFixed(3) || '0.000'}
+        </span>
+								</div>
+								<div className="ratio-item">
+									<span className="ratio-label">PCRL</span>
+									<span className="ratio-value">
+          {keyStrikeRatios[`${selectedRatioInterval}min`]?.PCRL?.toFixed(3) || '0.000'}
+        </span>
+								</div>
+								<div className="ratio-item">
+									<span className="ratio-label">PCRH</span>
+									<span className="ratio-value">
+          {keyStrikeRatios[`${selectedRatioInterval}min`]?.PCRH?.toFixed(3) || '0.000'}
+        </span>
+								</div>
+							</div>
+						</div>
+					)}
+				
+					
 					
 					{/* Add Legend in Header */}
 					{ranges.c_low && (
