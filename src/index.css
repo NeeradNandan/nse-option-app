@@ -1042,3 +1042,37 @@
 	background: #4a5568;
 	color: white;
 }
+
+.offsets-selector {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+.offsets-selector label {
+	font-size: 12px;
+	font-weight: 500;
+	opacity: 0.9;
+	text-transform: uppercase;
+}
+
+.offsets-selector input[type="number"] {
+	background: rgba(255, 255, 255, 0.2);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	color: white;
+	padding: 8px 12px;
+	border-radius: 8px;
+	font-size: 14px;
+	font-weight: 500;
+	width: 80px;
+	transition: all 0.2s ease;
+}
+
+.offsets-selector input[type="number"]:hover {
+	background: rgba(255, 255, 255, 0.3);
+}
+
+.offsets-selector input[type="number"]:focus {
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+}

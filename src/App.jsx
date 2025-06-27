@@ -10,6 +10,7 @@ function OptionChainTable() {
 	const [initializing, setInitializing] = useState(true);
 	const [niftySpot, setNiftySpot] = useState(null);
 	const [niftyATM, setNiftyATM] = useState(null);
+	const [offsets, setOffsets] = useState({ large: 250, small: 150 });
 	const [ranges, setRanges] = useState({
 		                                     c_low: null,
 		                                     c_high: null,
@@ -96,12 +97,19 @@ function OptionChainTable() {
 		if (!atmValue) return null;
 		
 		return {
-			c_low: atmValue - 250,
-			c_high: atmValue - 150,
-			p_low: atmValue + 150,
-			p_high: atmValue + 250
+			c_low: atmValue - offsets.large,
+			c_high: atmValue - offsets.small,
+			p_low: atmValue + offsets.small,
+			p_high: atmValue + offsets.large
 		};
 	};
+	
+	useEffect(() => {
+		if (niftyATM) {
+			const newRanges = calculateRanges(niftyATM);
+			setRanges(newRanges);
+		}
+	}, [niftyATM, offsets]);
 	
 	// Get row class based on strike price
 	const getRowClass = (strikePrice) => {
@@ -610,6 +618,30 @@ function OptionChainTable() {
 									<option key={exp} value={exp}>{exp}</option>
 								))}
 							</select>
+						</div>
+						<div className="offsets-selector">
+							<label>Large Offset:</label>
+							<input
+								type="number"
+								value={offsets.large}
+								onChange={(e) => {
+									const value = e.target.value;
+									if (!isNaN(value) && value !== '') {
+										setOffsets((prev) => ({ ...prev, large: Number(value) }));
+									}
+								}}
+							/>
+							<label>Small Offset:</label>
+							<input
+								type="number"
+								value={offsets.small}
+								onChange={(e) => {
+									const value = e.target.value;
+									if (!isNaN(value) && value !== '') {
+										setOffsets((prev) => ({ ...prev, small: Number(value) }));
+									}
+								}}
+							/>
 						</div>
 						<div className="update-info">
 							<span className="update-label">Last Updated</span>
