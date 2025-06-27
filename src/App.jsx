@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './index.css'; // We'll create this CSS file
 
-function OptionChainTable({ expiry = '26-Jun-2025' }) {
+function OptionChainTable() {
 	const [rows, setRows] = useState([]);
 	const [error, setError] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [expiryOptions, setExpiryOptions] = useState([]);
-	const [selectedExpiry, setSelectedExpiry] = useState(expiry);
+	const [selectedExpiry, setSelectedExpiry] = useState('');
+	const [initializing, setInitializing] = useState(true);
 	const [niftySpot, setNiftySpot] = useState(null);
 	const [niftyATM, setNiftyATM] = useState(null);
 	const [ranges, setRanges] = useState({
@@ -31,6 +32,32 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 	
 	// Time intervals in minutes
 	const intervals = [1, 3, 6, 12, 18, 24, 30];
+	
+	useEffect(() => {
+		const initializeExpiry = async () => {
+			try {
+				// Make a simple request to get expiry dates
+				const res = await fetch('/api/get-expiry-dates');
+				if (!res.ok) throw new Error('Failed to fetch expiry dates');
+				
+				const data = await res.json();
+				const expiryDates = data.expiryDates;
+				
+				if (expiryDates && expiryDates.length > 0) {
+					setExpiryOptions(expiryDates);
+					setSelectedExpiry(expiryDates[0]); // Set first expiry as default
+					setInitializing(false);
+				} else {
+					throw new Error('No expiry dates available');
+				}
+			} catch (err) {
+				setError('Failed to initialize: ' + err.message);
+				setInitializing(false);
+			}
+		};
+		
+		initializeExpiry();
+	}, []); // Run only once on mount
 	
 	// Calculate NIFTY ATM value
 	const calculateNiftyATM = (spotPrice) => {
@@ -224,7 +251,7 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 	
 	
 	const fetchData = useCallback(() => {
-		if (fetchData.lock) return;
+		if (fetchData.lock || !selectedExpiry) return;
 		fetchData.lock = true;
 		
 		fetch(`/api/option-chain?expiry=${encodeURIComponent(selectedExpiry)}`)
@@ -233,7 +260,9 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 				return res.json();
 			})
 			.then(json => {
-				setExpiryOptions(json.records.expiryDates);
+				if (json.records.expiryDates) {
+					setExpiryOptions(json.records.expiryDates);
+				}
 				
 				// Update NIFTY spot price and calculate ATM
 				if (json.niftySpot) {
@@ -338,6 +367,8 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 	}, [selectedExpiry]);
 	
 	useEffect(() => {
+		if (initializing || !selectedExpiry) return;
+		
 		fetchData.lock = false;
 		fetchData();
 		
@@ -357,7 +388,7 @@ function OptionChainTable({ expiry = '26-Jun-2025' }) {
 		}, 10000); // Fetch every 10 seconds
 		
 		return () => clearInterval(id);
-	}, [selectedExpiry]);
+	}, [selectedExpiry, initializing, fetchData]);
 	
 	if (loading) {
 		return (

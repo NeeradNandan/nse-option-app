@@ -1,4 +1,4 @@
-// /api/option-chain.js
+// /api/get-expiry-dates.js
 import axios from 'axios';
 import { wrapper } from 'axios-cookiejar-support';
 import tough from 'tough-cookie';
@@ -39,48 +39,28 @@ const API_HEADERS = {
 };
 
 export default async function handler(req, res) {
-	const expiry = req.query.expiry;
-	
 	try {
 		// Visit the page first to get cookies
 		await client.get('https://www.nseindia.com/option-chain', {
 			headers: PAGE_HEADERS
 		});
 		
-		// Fetch option chain data
-		const optionChainUrl = 'https://www.nseindia.com/api/option-chain-v3';
-		const { data: optionData } = await client.get(optionChainUrl, {
-			headers: API_HEADERS,
-			params: {
-				type: 'Indices',
-				symbol: 'NIFTY',
-				expiry,
-			}
-		});
-		
-		// Fetch market status data
-		const marketStatusUrl = 'https://www.nseindia.com/api/marketStatus';
-		const { data: marketData } = await client.get(marketStatusUrl, {
+		// Get expiry dates using the indices endpoint
+		const apiUrl = 'https://www.nseindia.com/api/option-chain-indices?symbol=NIFTY';
+		const { data } = await client.get(apiUrl, {
 			headers: API_HEADERS
 		});
 		
-		// Extract NIFTY 50 last price
-		const capitalMarket = marketData.marketState.find(m => m.market === 'Capital Market');
-		const niftyLast = capitalMarket ? capitalMarket.last : null;
-		
-		// Combine the data
-		const responseData = {
-			...optionData,
-			niftySpot: niftyLast
-		};
-		
-		if (typeof optionData !== 'object') {
-			return res.status(502).json({ error: 'Unexpected response from NSE' });
+		if (data?.records?.expiryDates && data.records.expiryDates.length > 0) {
+			res.status(200).json({
+				                     expiryDates: data.records.expiryDates,
+				                     defaultExpiry: data.records.expiryDates[0]
+			                     });
+		} else {
+			res.status(404).json({ error: 'No expiry dates found' });
 		}
-		
-		res.status(200).json(responseData);
 	} catch (err) {
 		console.error('API Error:', err.message || err);
-		res.status(502).json({ error: 'Failed to fetch NSE data' });
+		res.status(502).json({ error: 'Failed to fetch expiry dates' });
 	}
 }
