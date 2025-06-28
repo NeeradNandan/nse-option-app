@@ -24,6 +24,9 @@ function OptionChainTable() {
 		                                                       PCRH: 0
 	                                                       });
 	const [selectedRatioInterval, setSelectedRatioInterval] = useState('1');
+	const [isAppActive, setIsAppActive] = useState(true);
+	const intervalRef = useRef(null);
+	const inactiveTimeoutRef = useRef(null);
 	
 	
 	
@@ -374,29 +377,110 @@ function OptionChainTable() {
 		lastUpdateTime.current = Date.now();
 	}, [selectedExpiry]);
 	
+	const startInterval = useCallback(() => {
+		if (intervalRef.current) {
+			clearInterval(intervalRef.current);
+		}
+		
+		intervalRef.current = setInterval(() => {
+			if (!isAppActive) return; // Don't fetch if app is not active
+			
+			const now = new Date();
+			const istNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+			const hours = istNow.getHours();
+			const minutes = istNow.getMinutes();
+			const dayOfWeek = istNow.getDay();
+			
+			const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
+			const afterOpen = hours > 9 || (hours === 9 && minutes >= 15);
+			const beforeClose = hours < 15 || (hours === 15 && minutes <= 29);
+			
+			if (isWeekday && afterOpen && beforeClose) {
+				fetchData();
+			}
+		}, 10000);
+	}, [fetchData, isAppActive]);
+	
 	useEffect(() => {
 		if (initializing || !selectedExpiry) return;
 		
 		fetchData.lock = false;
 		fetchData();
 		
-		const id = setInterval(() => {
-			const now = new Date();
-			const istNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-			const hours = istNow.getHours();
-			const minutes = istNow.getMinutes();
-			
-			const afterOpen = hours > 9 || (hours === 9 && minutes >= 15);
-			const beforeClose = hours < 15 || (hours === 15 && minutes <= 29);
-			
-			if (afterOpen && beforeClose) {
-				fetchData();
-			}
-			/*fetchData();*/
-		}, 10000); // Fetch every 10 seconds
+		startInterval();
 		
-		return () => clearInterval(id);
-	}, [selectedExpiry, initializing, fetchData]);
+		return () => {
+			if (intervalRef.current) {
+				clearInterval(intervalRef.current);
+				intervalRef.current = null;
+			}
+			if (inactiveTimeoutRef.current) {
+				clearTimeout(inactiveTimeoutRef.current);
+				inactiveTimeoutRef.current = null;
+			}
+		};
+	}, [selectedExpiry, initializing, startInterval]);
+	
+	// Handle browser visibility and focus changes
+	useEffect(() => {
+		const handleVisibilityChange = () => {
+			if (document.hidden) {
+				// User switched away from tab/minimized browser
+				setIsAppActive(false);
+				// Set a timeout to stop requests after 1 minute of inactivity
+				inactiveTimeoutRef.current = setTimeout(() => {
+					if (intervalRef.current) {
+						clearInterval(intervalRef.current);
+						intervalRef.current = null;
+					}
+				}, 60000); // 1 minute
+			} else {
+				// User returned to tab
+				setIsAppActive(true);
+				// Clear the inactive timeout
+				if (inactiveTimeoutRef.current) {
+					clearTimeout(inactiveTimeoutRef.current);
+					inactiveTimeoutRef.current = null;
+				}
+				// Restart interval if it was stopped
+				if (!intervalRef.current && !initializing && selectedExpiry) {
+					startInterval();
+				}
+			}
+		};
+		
+		const handleFocus = () => {
+			setIsAppActive(true);
+			if (inactiveTimeoutRef.current) {
+				clearTimeout(inactiveTimeoutRef.current);
+				inactiveTimeoutRef.current = null;
+			}
+		};
+		
+		const handleBlur = () => {
+			setIsAppActive(false);
+			inactiveTimeoutRef.current = setTimeout(() => {
+				if (intervalRef.current) {
+					clearInterval(intervalRef.current);
+					intervalRef.current = null;
+				}
+			}, 60000);
+		};
+		
+		document.addEventListener('visibilitychange', handleVisibilityChange);
+		window.addEventListener('focus', handleFocus);
+		window.addEventListener('blur', handleBlur);
+		
+		return () => {
+			document.removeEventListener('visibilitychange', handleVisibilityChange);
+			window.removeEventListener('focus', handleFocus);
+			window.removeEventListener('blur', handleBlur);
+			if (inactiveTimeoutRef.current) {
+				clearTimeout(inactiveTimeoutRef.current);
+			}
+		};
+	}, [initializing, selectedExpiry, startInterval]);
+	
 	
 	if (loading) {
 		return (
