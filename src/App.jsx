@@ -260,10 +260,12 @@ function OptionChainTable() {
 	}, [ranges, intervals]);
 	
 	
-	
 	const fetchData = useCallback(() => {
+		
 		if (fetchData.lock || !selectedExpiry) return;
 		fetchData.lock = true;
+		
+		console.log('🔵 FETCH_DATA called at:', new Date().toLocaleTimeString(), 'Stack:', new Error().stack.split('\n')[2]);
 		
 		fetch(`/api/option-chain?expiry=${encodeURIComponent(selectedExpiry)}`)
 			.then(res => {
@@ -378,11 +380,14 @@ function OptionChainTable() {
 	}, [selectedExpiry]);
 	
 	const startInterval = useCallback(() => {
+		console.log('🟡 START_INTERVAL called at:', new Date().toLocaleTimeString());
 		if (intervalRef.current) {
+			console.log('🔴 CLEARING existing interval:', intervalRef.current);
 			clearInterval(intervalRef.current);
 		}
 		
 		intervalRef.current = setInterval(() => {
+			console.log('⏰ INTERVAL TICK at:', new Date().toLocaleTimeString());
 			if (!isAppActive) return; // Don't fetch if app is not active
 			
 			const now = new Date();
@@ -399,12 +404,15 @@ function OptionChainTable() {
 				fetchData();
 			}
 		}, 10000);
+		console.log('🟢 NEW INTERVAL created:', intervalRef.current);
 	}, [fetchData, isAppActive]);
 	
 	useEffect(() => {
+		console.log('🔶 MAIN_EFFECT triggered - selectedExpiry:', selectedExpiry, 'initializing:', initializing);
 		if (initializing || !selectedExpiry) return;
 		
 		fetchData.lock = false;
+		console.log('📞 CALLING fetchData from main effect');
 		fetchData();
 		
 		startInterval();
