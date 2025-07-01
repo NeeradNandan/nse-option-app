@@ -265,14 +265,28 @@ function OptionChainTable() {
 		if (fetchData.lock || !selectedExpiry) return;
 		fetchData.lock = true;
 		
+		const startTime = performance.now();
+		
 		console.log('🔵 FETCH_DATA called at:', new Date().toLocaleTimeString(), 'Stack:', new Error().stack.split('\n')[2]);
 		
 		fetch(`/api/option-chain?expiry=${encodeURIComponent(selectedExpiry)}`)
 			.then(res => {
+				const endTime = performance.now();
+				console.log('⏱ API Response time:', `${(endTime - startTime).toFixed(2)}ms`);
+				
 				if (!res.ok) throw new Error(res.statusText);
 				return res.json();
 			})
 			.then(json => {
+				console.log('📊 Data fetched:', {
+					timestamp: new Date().toLocaleTimeString(),
+					totalRecords: json.records?.data?.length || 0,
+					filteredRecords: json.records?.data?.filter(d => d.expiryDates === selectedExpiry)?.length || 0,
+					dataSizeKB: (JSON.stringify(json).length / 1024).toFixed(2),
+					niftySpot: json.niftySpot,
+					expiryDates: json.records?.expiryDates?.length || 0
+				});
+				
 				if (json.records.expiryDates) {
 					setExpiryOptions(json.records.expiryDates);
 				}
@@ -363,6 +377,12 @@ function OptionChainTable() {
 				});
 				
 				setRows(finalRows);
+				
+				console.log('📈 Volume History Stats:', {
+					totalStrikes: volumeHistory.current.size,
+					historyDataPoints: Array.from(volumeHistory.current.values()).reduce((sum, history) => sum + history.timestamps.length, 0),
+					memoryUsageKB: (JSON.stringify(Object.fromEntries(volumeHistory.current)).length / 1024).toFixed(2)
+				});
 				setError(null);
 				lastUpdateTime.current = Date.now();
 			})
