@@ -405,7 +405,7 @@ function OptionChainTable() {
 			}
 		}, 10000);
 		console.log('🟢 NEW INTERVAL created:', intervalRef.current);
-	}, [isAppActive]);
+	}, [isAppActive, fetchData]);
 	
 	useEffect(() => {
 		console.log('🔶 MAIN_EFFECT triggered - selectedExpiry:', selectedExpiry, 'initializing:', initializing);
@@ -427,7 +427,7 @@ function OptionChainTable() {
 				inactiveTimeoutRef.current = null;
 			}
 		};
-	}, [selectedExpiry, initializing, fetchData, startInterval]);
+	}, [selectedExpiry, initializing]);
 	
 	// Handle browser visibility and focus changes
 	useEffect(() => {
