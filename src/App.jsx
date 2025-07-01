@@ -371,7 +371,7 @@ function OptionChainTable() {
 				setLoading(false);
 				fetchData.lock = false;
 			});
-	}, [selectedExpiry, calculateIntervalVolumes, calculateKeyStrikeSignals, intervals, ranges, niftyATM]);
+	}, [selectedExpiry, calculateIntervalVolumes, calculateKeyStrikeSignals, intervals, ranges, niftyATM, keyStrikeRatios]);
 	
 	// Clear volume history when expiry changes
 	useEffect(() => {
@@ -403,19 +403,20 @@ function OptionChainTable() {
 			if (isWeekday && afterOpen && beforeClose) {
 				fetchData();
 			}
-		}, 10000);
+		}, 8000);
 		console.log('🟢 NEW INTERVAL created:', intervalRef.current);
-	}, [isAppActive]);
+	}, [isAppActive, fetchData]);
 	
 	useEffect(() => {
 		console.log('🔶 MAIN_EFFECT triggered - selectedExpiry:', selectedExpiry, 'initializing:', initializing);
 		if (initializing || !selectedExpiry) return;
 		
-		fetchData.lock = false;
+		//fetchData.lock = true;
 		console.log('📞 CALLING fetchData from main effect');
-		fetchData();
+		//fetchData();
 		
 		startInterval();
+		//fetchData.lock = false;
 		
 		return () => {
 			if (intervalRef.current) {
