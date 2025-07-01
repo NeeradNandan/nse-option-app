@@ -371,7 +371,7 @@ function OptionChainTable() {
 				setLoading(false);
 				fetchData.lock = false;
 			});
-	}, [selectedExpiry, calculateIntervalVolumes, calculateKeyStrikeSignals, intervals, ranges, niftyATM]);
+	}, [selectedExpiry]);
 	
 	// Clear volume history when expiry changes
 	useEffect(() => {
@@ -405,7 +405,7 @@ function OptionChainTable() {
 			}
 		}, 10000);
 		console.log('🟢 NEW INTERVAL created:', intervalRef.current);
-	}, [fetchData, isAppActive]);
+	}, [isAppActive]);
 	
 	useEffect(() => {
 		console.log('🔶 MAIN_EFFECT triggered - selectedExpiry:', selectedExpiry, 'initializing:', initializing);
@@ -427,7 +427,7 @@ function OptionChainTable() {
 				inactiveTimeoutRef.current = null;
 			}
 		};
-	}, [selectedExpiry, initializing, startInterval]);
+	}, [selectedExpiry, initializing, fetchData, startInterval]);
 	
 	// Handle browser visibility and focus changes
 	useEffect(() => {
