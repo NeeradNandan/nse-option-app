@@ -369,7 +369,7 @@ function OptionChainTable() {
 				setLoading(false);
 				fetchData.lock = false;
 			});
-	}, [selectedExpiry, calculateIntervalVolumes, calculateKeyStrikeSignals, rows, intervals, ranges, niftyATM]);
+	}, [selectedExpiry, calculateIntervalVolumes, calculateKeyStrikeSignals, intervals, ranges, niftyATM]);
 	
 	// Clear volume history when expiry changes
 	useEffect(() => {
