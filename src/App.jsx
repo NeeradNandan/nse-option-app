@@ -260,7 +260,7 @@ function OptionChainTable() {
 	}, [ranges, intervals]);
 	
 	
-	const fetchData = useCallback(() => {
+	const fetchData = useCallback( () => {
 		
 		if (fetchData.lock || !selectedExpiry) return;
 		fetchData.lock = true;
@@ -401,19 +401,25 @@ function OptionChainTable() {
 			const beforeClose = hours < 15 || (hours === 15 && minutes <= 29);
 			
 			if (isWeekday && afterOpen && beforeClose) {
+				console.log('📞 CALLING fetchData from main effect');
 				fetchData();
 			}
 		}, 8000);
 		console.log('🟢 NEW INTERVAL created:', intervalRef.current);
 	}, [isAppActive, fetchData]);
 	
+	useEffect( () => {
+		console.log(`Data fetch is triggered once`);
+		if (!initializing || selectedExpiry) fetchData();
+	}, [selectedExpiry, initializing] );
+	
 	useEffect(() => {
 		console.log('🔶 MAIN_EFFECT triggered - selectedExpiry:', selectedExpiry, 'initializing:', initializing);
 		if (initializing || !selectedExpiry) return;
 		
 		//fetchData.lock = true;
-		console.log('📞 CALLING fetchData from main effect');
-		//fetchData();
+		//console.log('📞 CALLING fetchData from main effect');
+		
 		
 		startInterval();
 		//fetchData.lock = false;
