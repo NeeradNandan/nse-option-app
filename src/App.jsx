@@ -102,8 +102,8 @@ function OptionChainTable() {
 		
 		let c_low = atmValue - offsets.large,
 			c_high = atmValue - offsets.small,
-			p_low = atmValue - offsets.small,
-			p_high = atmValue - offsets.large;
+			p_low = atmValue + offsets.small,
+			p_high = atmValue + offsets.large;
 		if (atmValue % 100 > 30 && atmValue % 100 < 40 ) {
 			c_high -= 50;
 			p_high -= 50;
