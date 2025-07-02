@@ -27,6 +27,7 @@ function OptionChainTable() {
 	const [isAppActive, setIsAppActive] = useState(true);
 	const intervalRef = useRef(null);
 	const inactiveTimeoutRef = useRef(null);
+	const [dataStats, setDataStats] = useState({ totalFetches: 0, totalDataKB: 0 });
 	
 	
 	
@@ -99,13 +100,25 @@ function OptionChainTable() {
 	const calculateRanges = (atmValue) => {
 		if (!atmValue) return null;
 		
+		let c_low = atmValue - offsets.large,
+			c_high = atmValue - offsets.small,
+			p_low = atmValue - offsets.small,
+			p_high = atmValue - offsets.large;
+		if (atmValue % 100 > 30 && atmValue % 100 < 40 ) {
+			c_high -= 50;
+			p_high -= 50;
+		} else if (atmValue % 100 > 60 && atmValue % 100 < 70 ) {
+			c_low += 50;
+			p_low += 50;
+		}
 		return {
-			c_low: atmValue - offsets.large,
-			c_high: atmValue - offsets.small,
-			p_low: atmValue + offsets.small,
-			p_high: atmValue + offsets.large
+			c_low ,
+			c_high ,
+			p_low,
+			p_high
 		};
 	};
+	
 	
 	useEffect(() => {
 		if (niftyATM) {
@@ -278,6 +291,12 @@ function OptionChainTable() {
 				return res.json();
 			})
 			.then(json => {
+				const dataSizeKB = JSON.stringify(json).length / 1024;
+				setDataStats(prev => ({
+					totalFetches: prev.totalFetches + 1,
+					totalDataKB: prev.totalDataKB + dataSizeKB
+				}));
+				
 				console.log('📊 Data fetched:', {
 					timestamp: new Date().toLocaleTimeString(),
 					totalRecords: json.records?.data?.length || 0,
@@ -294,6 +313,7 @@ function OptionChainTable() {
 				// Update NIFTY spot price and calculate ATM
 				if (json.niftySpot) {
 					setNiftySpot(json.niftySpot);
+					/*setNiftySpot(25535);*/
 					const atm = calculateNiftyATM(json.niftySpot);
 					setNiftyATM(atm);
 					
@@ -443,7 +463,7 @@ function OptionChainTable() {
 		
 		startInterval();
 		//fetchData.lock = false;
-		
+		//console.log(`C_HIGH: ${ranges.c_high}`);
 		return () => {
 			if (intervalRef.current) {
 				clearInterval(intervalRef.current);
@@ -538,7 +558,18 @@ function OptionChainTable() {
 		);
 	};
 	
+	
 	// Add helper functions inside the component:
+	
+	const formatDataSize = (sizeInKB) => {
+		if (sizeInKB < 1024) {
+			return `${sizeInKB.toFixed(1)} KB`;
+		} else if (sizeInKB < 1024 * 1024) {
+			return `${(sizeInKB / 1024).toFixed(1)} MB`;
+		} else {
+			return `${(sizeInKB / (1024 * 1024)).toFixed(1)} GB`;
+		}
+	};
 	const getStrikeLabel = (strikePrice) => {
 		if (strikePrice === ranges.c_low) return 'C_Low';
 		if (strikePrice === ranges.c_high) return 'C_High';
@@ -637,7 +668,7 @@ function OptionChainTable() {
 										<div className="range-values">
 											<span className="range-box c-low">{ranges.c_low}</span>
 											<span className="range-separator">-</span>
-											<span className="range-box c-high">{ranges.c_high}</span>
+											<span className="range-box p-low">{ranges.c_high}</span>
 										</div>
 									</div>
 									<div className="put-ranges">
@@ -739,7 +770,7 @@ function OptionChainTable() {
 							</select>
 						</div>
 						<div className="offsets-selector">
-							<label>Large Offset:</label>
+							<label>C_Low/P_High Offset:</label>
 							<input
 								type="number"
 								value={offsets.large}
@@ -750,7 +781,7 @@ function OptionChainTable() {
 									}
 								}}
 							/>
-							<label>Small Offset:</label>
+							<label>C_High/P_Low Offset:</label>
 							<input
 								type="number"
 								value={offsets.small}
@@ -772,6 +803,17 @@ function OptionChainTable() {
 		              second: '2-digit'
 	              })}
 	            </span>
+						</div>
+						{/* Add this new data stats section */}
+						<div className="data-stats">
+							<div className="stat-item">
+								<span className="stat-label">Total Fetches </span>
+								<span className="stat-value">{dataStats.totalFetches}</span>
+							</div>
+							<div className="stat-item">
+								<span className="stat-label">Data Used </span>
+								<span className="stat-value">{formatDataSize(dataStats.totalDataKB)}</span>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -823,16 +865,16 @@ function OptionChainTable() {
 										{renderRowCells(rows.find(row => row.strikePrice === ranges.c_low), 'C_Low')}
 									</tr>
 								)}
-								{/* C_High Row */}
-								{rows.find(row => row.strikePrice === ranges.c_high) && (
-									<tr className="highlight-c-high special-row">
-										{renderRowCells(rows.find(row => row.strikePrice === ranges.c_high), 'C_High')}
-									</tr>
-								)}
 								{/* P_Low Row */}
 								{rows.find(row => row.strikePrice === ranges.p_low) && (
 									<tr className="highlight-p-low special-row">
 										{renderRowCells(rows.find(row => row.strikePrice === ranges.p_low), 'P_Low')}
+									</tr>
+								)}
+								{/* C_High Row */}
+								{rows.find(row => row.strikePrice === ranges.c_high) && (
+									<tr className="highlight-c-high special-row">
+										{renderRowCells(rows.find(row => row.strikePrice === ranges.c_high), 'C_High')}
 									</tr>
 								)}
 								{/* P_High Row */}
