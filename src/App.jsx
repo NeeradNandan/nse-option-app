@@ -740,18 +740,30 @@ function OptionChainTable() {
 							<div className="legend-item">
 								<div className="legend-bar c-low"></div>
 								<span>C_Low: {ranges.c_low}</span>
-							</div>
-							<div className="legend-item">
-								<div className="legend-bar c-high"></div>
-								<span>C_High: {ranges.c_high}</span>
+								<div className="legend-volume">
+									1min: Call: {rows.find(row => row.strikePrice === ranges.c_low)?.[`ce1min`] || 0} | Put: {rows.find(row => row.strikePrice === ranges.c_low)?.[`pe1min`] || 0}
+								</div>
 							</div>
 							<div className="legend-item">
 								<div className="legend-bar p-low"></div>
 								<span>P_Low: {ranges.p_low}</span>
+								<div className="legend-volume">
+									1min: Call: {rows.find(row => row.strikePrice === ranges.p_low)?.[`ce1min`] || 0} | Put: {rows.find(row => row.strikePrice === ranges.p_low)?.[`pe1min`] || 0}
+								</div>
+							</div>
+							<div className="legend-item">
+								<div className="legend-bar c-high"></div>
+								<span>C_High: {ranges.c_high}</span>
+								<div className="legend-volume">
+									1min: Call: {rows.find(row => row.strikePrice === ranges.c_high)?.[`ce1min`] || 0} | Put: {rows.find(row => row.strikePrice === ranges.c_high)?.[`pe1min`] || 0}
+								</div>
 							</div>
 							<div className="legend-item">
 								<div className="legend-bar p-high"></div>
 								<span>P_High: {ranges.p_high}</span>
+								<div className="legend-volume">
+									1min: Call: {rows.find(row => row.strikePrice === ranges.p_high)?.[`ce1min`] || 0} | Put: {rows.find(row => row.strikePrice === ranges.p_high)?.[`pe1min`] || 0}
+								</div>
 							</div>
 						</div>
 					)}

@@ -714,8 +714,31 @@
 
 .legend-item {
 	display: flex;
+	align-items: flex-start; /* Changed from center to accommodate multi-line content */
+	flex-direction: column; /* Stack the legend bar/span and volume info */
+	gap: 4px; /* Reduced gap */
+	font-size: 13px;
+	font-weight: 500;
+}
+
+.legend-item-main {
+	display: flex;
 	align-items: center;
 	gap: 8px;
+}
+
+/* If you prefer horizontal layout, use this instead */
+.legend-item.horizontal {
+	flex-direction: row;
+	align-items: center;
+	gap: 12px;
+}
+
+.legend-item.horizontal .legend-volume {
+	margin-top: 0;
+	margin-left: 8px;
+	font-size: 9px;
+	padding: 1px 4px;
 }
 
 .legend-bar {
@@ -1102,4 +1125,24 @@
 .stat-value {
 	color: white;
 	font-weight: 600;
+}
+
+.legend-volume {
+	display: block;
+	font-size: 12px;
+	font-weight: 500;
+	color: rgba(255, 255, 255, 0.8);
+	margin-top: 4px;
+	padding: 2px 6px;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 4px;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: 0.2px;
+}
+
+.legend-volume::before {
+	content: "Vol - ";
+	font-size: 11px;
+	opacity: 0.7;
+	text-transform: uppercase;
 }
