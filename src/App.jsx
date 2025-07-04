@@ -97,17 +97,17 @@ function OptionChainTable() {
 	};
 	
 	// Calculate ranges based on ATM
-	const calculateRanges = (atmValue) => {
+	const calculateRanges = (atmValue, niftySpot) => {
 		if (!atmValue) return null;
 		
 		let c_low = atmValue - offsets.large,
 			c_high = atmValue - offsets.small,
 			p_low = atmValue + offsets.small,
 			p_high = atmValue + offsets.large;
-		if (atmValue % 100 > 30 && atmValue % 100 < 40 ) {
+		if (niftySpot % 100 > 30 && niftySpot % 100 < 40 ) {
 			c_high -= 50;
 			p_high -= 50;
-		} else if (atmValue % 100 > 60 && atmValue % 100 < 70 ) {
+		} else if (niftySpot % 100 > 60 && niftySpot % 100 < 70 ) {
 			c_low += 50;
 			p_low += 50;
 		}
@@ -122,7 +122,7 @@ function OptionChainTable() {
 	
 	useEffect(() => {
 		if (niftyATM) {
-			const newRanges = calculateRanges(niftyATM);
+			const newRanges = calculateRanges(niftyATM, niftySpot);
 			setRanges(newRanges);
 		}
 	}, [niftyATM, offsets]);
@@ -329,7 +329,7 @@ function OptionChainTable() {
 					setNiftyATM(atm);*/
 					
 					// Calculate ranges
-					currentRanges = calculateRanges(currentNiftyATM);
+					currentRanges = calculateRanges(currentNiftyATM, currentNiftySpot);
 					setRanges(currentRanges);
 					/*const newRanges = calculateRanges(niftyATM);
 					setRanges(newRanges);*/
