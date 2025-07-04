@@ -273,7 +273,7 @@ function OptionChainTable() {
 	}, [ranges, intervals]);
 	
 	
-	const fetchData = useCallback( () => {
+	const fetchData = useCallback( async () => {
 		
 		if (fetchData.lock || !selectedExpiry) return;
 		fetchData.lock = true;
@@ -310,16 +310,29 @@ function OptionChainTable() {
 					setExpiryOptions(json.records.expiryDates);
 				}
 				
+				/*console.log('<UNK> Nifty Spot:', json.niftySpot, typeof json.niftySpot);
+				setNiftySpot(json.niftySpot);
+				console.log(niftySpot);*/
+				
+				let currentNiftySpot = json.niftySpot;
+				let currentNiftyATM = niftyATM; // Keep existing ATM if no new spot price
+				let currentRanges = ranges;
+				
 				// Update NIFTY spot price and calculate ATM
 				if (json.niftySpot) {
+					//console.log(json.niftySpot);
 					setNiftySpot(json.niftySpot);
-					/*setNiftySpot(25535);*/
-					const atm = calculateNiftyATM(json.niftySpot);
-					setNiftyATM(atm);
+					/*setNiftySpot(25560);*/
+					currentNiftyATM = calculateNiftyATM(currentNiftySpot);
+					setNiftyATM(currentNiftyATM);
+					/*const atm = calculateNiftyATM(niftySpot);
+					setNiftyATM(atm);*/
 					
 					// Calculate ranges
-					const newRanges = calculateRanges(atm);
-					setRanges(newRanges);
+					currentRanges = calculateRanges(currentNiftyATM);
+					setRanges(currentRanges);
+					/*const newRanges = calculateRanges(niftyATM);
+					setRanges(newRanges);*/
 				}
 				
 				const filtered = json.records.data.filter(
@@ -377,7 +390,7 @@ function OptionChainTable() {
 				
 				// Apply key strike signals to relevant rows
 				const finalRows = tableRows.map(row => {
-					const isKeyStrike = [ranges.c_low, ranges.c_high, ranges.p_low, ranges.p_high, niftyATM].includes(row.strikePrice);
+					const isKeyStrike = [currentRanges.c_low, currentRanges.c_high, currentRanges.p_low, currentRanges.p_high, currentNiftyATM].includes(row.strikePrice);
 					
 					if (isKeyStrike) {
 						// Override signals with key strike signals
@@ -644,12 +657,15 @@ function OptionChainTable() {
 		);
 	};
 	
-	//console.log(keyStrikeRatios);
 	
 	return (
 		<div className="option-chain-wrapper">
 			<div className="option-chain-container">
 				<div className="header-section">
+					<div className="active-status">
+						<span className="status-label">Active Status:</span>
+						<span className="status-value">{isAppActive.toLocaleString().charAt(0).toUpperCase() + isAppActive.toLocaleString().slice(1)}</span>
+					</div>
 					<h1 className="main-title">NSE Option Chain</h1>
 					{niftySpot && niftyATM && (
 						<div className="market-info">
